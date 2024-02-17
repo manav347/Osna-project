@@ -1,12 +1,15 @@
 from bs4 import BeautifulSoup
 import requests
-import openpyxl
 
+# Initialize arrays to store follower and following data
 FollowerArray = []
 FollowingArray = []
 
+# Take user input for the targeted user ID
+target_user = input('Enter the user ID you want to extract: ')
 
 def scrape_github_user_data(target_user):
+    print('I am here')
     try:
         # Fetch followers data
         followers_url = f'https://github.com/{target_user}?tab=followers'
@@ -15,9 +18,9 @@ def scrape_github_user_data(target_user):
         soup = BeautifulSoup(source.text, 'html.parser')
         followers = soup.find('turbo-frame', id="user-profile-frame").find_all('span', class_="Link--secondary")
 
-        follower_data = [follower.text for follower in followers]
-        
-        FollowerArray.append(name_follower)
+        for follower in followers:
+            name_follower = follower.text
+            FollowerArray.append(name_follower)
 
         # Fetch following data
         following_url = f'https://github.com/{target_user}?tab=following'
@@ -26,27 +29,27 @@ def scrape_github_user_data(target_user):
         soup = BeautifulSoup(source.text, 'html.parser')
         followings = soup.find('turbo-frame', id="user-profile-frame").find_all('span', class_="Link--secondary")
 
-        following_data = [following.text for following in followings]
-
-        return follower_data, following_data
+        for following in followings:
+            name_following = following.text
+            print('following')
+            FollowingArray.append(name_following)
 
     except Exception as e:
-        print(f"Error occurred while processing {target_user}: {e}")
-        return [], []
+        print(e)
+
+# Compare arrays and store unique elements in FinalUserArray
+scrape_github_user_data(target_user)
+FinalUserArray = list(set(FollowerArray + FollowingArray))
+
+# Print the FinalUserArray
+print("FinalUserArray:", FinalUserArray)
+print("FinalUserArray:", len(FinalUserArray))
+
 
 def save_to_excel(target_user, follower_data, following_data):
     excel = openpyxl.Workbook()
     sheet = excel.active
     sheet.title = 'User'
-    
-    FollowerArray.append(follower_data)
-    FinalUserArray = list(set(FollowerArray))
-
-
-    # Print the FinalUserArray
-    print("FinalUserArray:", FinalUserArray)
-    print("FinalUserArray:", len(FinalUserArray))
-
     sheet.append(['nameFollower', 'nameFollowing'])
 
     for follower in follower_data:
@@ -57,13 +60,13 @@ def save_to_excel(target_user, follower_data, following_data):
 
     excel.save(f'{target_user}_list.xlsx')
 
-
-
-
 if __name__ == "__main__":
     # Take user input for the targeted user IDs separated by commas
-    target_users = input('Enter the user IDs separated by commas: ').split(',')
+    
+    print('I am here 2')
+    target_users = FinalUserArray
 
     for target_user in target_users:
         follower_data, following_data = scrape_github_user_data(target_user.strip())
         save_to_excel(target_user.strip(), follower_data, following_data)
+

@@ -4,7 +4,7 @@ import openpyxl
 
 FollowerArray = []
 FollowingArray = []
-
+FinalUserArray = []  # Initialize outside the loop
 
 def scrape_github_user_data(target_user):
     try:
@@ -16,8 +16,6 @@ def scrape_github_user_data(target_user):
         followers = soup.find('turbo-frame', id="user-profile-frame").find_all('span', class_="Link--secondary")
 
         follower_data = [follower.text for follower in followers]
-        
-        FollowerArray.append(name_follower)
 
         # Fetch following data
         following_url = f'https://github.com/{target_user}?tab=following'
@@ -28,6 +26,8 @@ def scrape_github_user_data(target_user):
 
         following_data = [following.text for following in followings]
 
+        # print("\n")
+        # print("FinalUserArray:", FinalUserArray)
         return follower_data, following_data
 
     except Exception as e:
@@ -35,28 +35,37 @@ def scrape_github_user_data(target_user):
         return [], []
 
 def save_to_excel(target_user, follower_data, following_data):
+    global FinalUserArray  # Declare FinalUserArray as global
+
     excel = openpyxl.Workbook()
     sheet = excel.active
     sheet.title = 'User'
-    
-    FollowerArray.append(follower_data)
-    FinalUserArray = list(set(FollowerArray))
 
+    FollowerArray.extend(follower_data)  # Extend the FollowerArray with follower_data
+    FollowingArray.extend(following_data)  # Extend the FollowerArray with follower_data
+
+    # Extend the FinalUserArray with follower_data and following_data
+    FinalUserArray.extend(follower_data)
+    FinalUserArray.extend(following_data)
+
+    # Convert FinalUserArray to set to get unique IDs, then back to list
+    FinalUserArray = list(set(FinalUserArray))
 
     # Print the FinalUserArray
+    print("\n")
     print("FinalUserArray:", FinalUserArray)
-    print("FinalUserArray:", len(FinalUserArray))
+    print("Len:", following_data)
+    print("Len:", follower_data)
 
-    sheet.append(['nameFollower', 'nameFollowing'])
+    sheet.append(['nameFollower'])
 
     for follower in follower_data:
-        sheet.append([follower, ''])
+        sheet.append([follower])
 
     for following in following_data:
-        sheet.append(['', following])
+        sheet.append([following])
 
     excel.save(f'{target_user}_list.xlsx')
-
 
 
 
@@ -66,4 +75,5 @@ if __name__ == "__main__":
 
     for target_user in target_users:
         follower_data, following_data = scrape_github_user_data(target_user.strip())
-        save_to_excel(target_user.strip(), follower_data, following_data)
+        save_to_excel(target_user.strip(), follower_data, following_data)  # Pass both follower_data and following_data
+

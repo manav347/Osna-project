@@ -1,13 +1,9 @@
-# This version gives the excel output according to the Source and Target nodes 
-
 from bs4 import BeautifulSoup
 import requests
-import openpyxl
 
-excel = openpyxl.Workbook()
-sheet = excel.active    
-sheet.title = 'User'
-sheet.append(['Source', 'Target'])
+# Initialize arrays to store follower and following data
+FollowerArray = []
+FollowingArray = []
 
 # Take user input for the targeted user ID
 target_user = input('Enter the user ID you want to extract: ')
@@ -22,7 +18,7 @@ try:
 
     for follower in followers:
         name_follower = follower.text
-        sheet.append([name_follower,target_user])
+        FollowerArray.append(name_follower)
 
     # Fetch following data
     following_url = f'https://github.com/{target_user}?tab=following'
@@ -33,11 +29,14 @@ try:
 
     for following in followings:
         name_following = following.text
-        sheet.append([target_user, name_following])
+        FollowingArray.append(name_following)
 
 except Exception as e:
     print(e)
 
-print(target_user)
+# Compare arrays and store unique elements in FinalUserArray
+FinalUserArray = list(set(FollowerArray + FollowingArray))
 
-excel.save(f'{target_user}_list.xlsx')
+# Print the FinalUserArray
+print("FinalUserArray:", FinalUserArray)
+print("FinalUserArray:", len(FinalUserArray))
